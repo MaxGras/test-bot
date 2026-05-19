@@ -46,3 +46,29 @@ async def close_db() -> None:
     """Close database connection"""
     await engine.dispose()
     logger.info("✅ Database connection closed")
+
+
+async def seed_admin() -> None:
+    """Create admin user if not exists"""
+    from .config import settings
+    from ..models.user import User, UserRole
+    from sqlalchemy import select
+
+    async with AsyncSessionLocal() as session:
+        admin_id = settings.ADMIN_ID
+        stmt = select(User).where(User.telegram_id == admin_id)
+        result = await session.execute(stmt)
+        existing = result.scalar_one_or_none()
+
+        if not existing:
+            admin = User(
+                telegram_id=admin_id,
+                role=UserRole.ADMIN,
+                username="admin",
+                is_active=True
+            )
+            session.add(admin)
+            await session.commit()
+            logger.info(f"✅ Admin {admin_id} created")
+        else:
+            logger.info(f"✅ Admin {admin_id} already exists")

@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .core.config import settings
-from .core import init_db, close_db
+from .core import init_db, close_db, seed_admin
 from .api.v1 import api_router
 
 
@@ -33,6 +33,7 @@ def create_app() -> FastAPI:
     async def startup():
         """Initialize database on startup"""
         await init_db()
+        await seed_admin()
 
     @app.on_event("shutdown")
     async def shutdown():
