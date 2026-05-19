@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Card, CardTitle, CardBody, Button, LoadingSpinner } from '@components/common'
 import { Layout, Header } from '@components/layout/Header'
+import { useNavigationStore } from '@stores/navigationStore'
 
 interface Call {
   id: number
@@ -13,6 +14,7 @@ interface Call {
 }
 
 export const MyCalls: React.FC = () => {
+  const { navigate } = useNavigationStore()
   const [calls, setCalls] = useState<Call[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedCall, setSelectedCall] = useState<Call | null>(null)
@@ -24,9 +26,9 @@ export const MyCalls: React.FC = () => {
   const fetchMyCalls = async () => {
     setLoading(true)
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/my-calls`)
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/calls/my-calls`)
       const data = await response.json()
-      setCalls(data)
+      setCalls(data.data || data)
     } catch (error) {
       console.error('Error fetching calls:', error)
     } finally {
@@ -142,12 +144,12 @@ export const MyCalls: React.FC = () => {
         </Card>
 
         <div className="space-y-2">
-          <a href="#/manager/book-call" className="block">
-            <Button className="w-full">📞 Book New Call</Button>
-          </a>
-          <a href="#/home" className="block">
-            <Button className="w-full">🔙 Back to Menu</Button>
-          </a>
+          <Button onClick={() => navigate('manager/book-call')} className="w-full">
+            📞 Book New Call
+          </Button>
+          <Button onClick={() => navigate('home')} className="w-full">
+            🔙 Back to Menu
+          </Button>
         </div>
       </div>
     </Layout>

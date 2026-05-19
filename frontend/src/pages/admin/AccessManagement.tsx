@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Card, CardTitle, CardBody, Button, LoadingSpinner, Input } from '@components/common'
 import { Layout, Header } from '@components/layout/Header'
+import { useNavigationStore } from '@stores/navigationStore'
 
 interface User {
   id: number
@@ -11,6 +12,7 @@ interface User {
 }
 
 export const AccessManagement: React.FC = () => {
+  const { navigate } = useNavigationStore()
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [showAdd, setShowAdd] = useState(false)
@@ -26,7 +28,7 @@ export const AccessManagement: React.FC = () => {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/users`)
       const data = await response.json()
-      setUsers(data)
+      setUsers(data.data || data)
     } catch (error) {
       console.error('Error fetching users:', error)
     } finally {
@@ -195,9 +197,9 @@ export const AccessManagement: React.FC = () => {
               ➕ Add User
             </Button>
 
-            <a href="#/home" className="block">
-              <Button className="w-full">🔙 Back to Menu</Button>
-            </a>
+            <Button onClick={() => navigate('home')} className="w-full">
+              🔙 Back to Menu
+            </Button>
           </>
         )}
       </div>

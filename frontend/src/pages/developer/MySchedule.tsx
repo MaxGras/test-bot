@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Card, CardTitle, CardBody, Button, LoadingSpinner } from '@components/common'
 import { Layout, Header } from '@components/layout/Header'
+import { useNavigationStore } from '@stores/navigationStore'
 
 interface Call {
   id: number
@@ -12,6 +13,7 @@ interface Call {
 }
 
 export const MySchedule: React.FC = () => {
+  const { navigate } = useNavigationStore()
   const [calls, setCalls] = useState<Call[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0])
@@ -24,10 +26,10 @@ export const MySchedule: React.FC = () => {
     setLoading(true)
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/my-schedule?date=${selectedDate}`
+        `${import.meta.env.VITE_API_URL}/calls/my-schedule?date=${selectedDate}`
       )
       const data = await response.json()
-      setCalls(data)
+      setCalls(data.data || data)
     } catch (error) {
       console.error('Error fetching schedule:', error)
     } finally {
@@ -96,9 +98,9 @@ export const MySchedule: React.FC = () => {
           </CardBody>
         </Card>
 
-        <a href="#/home" className="block">
-          <Button className="w-full">🔙 Back to Menu</Button>
-        </a>
+        <Button onClick={() => navigate('home')} className="w-full">
+          🔙 Back to Menu
+        </Button>
       </div>
     </Layout>
   )

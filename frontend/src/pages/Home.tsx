@@ -1,11 +1,13 @@
 import React, { useEffect } from 'react'
 import { useAppStore } from '@stores/appStore'
+import { useNavigationStore } from '@stores/navigationStore'
 import { telegram } from '@services/telegram'
 import { Card, CardTitle, CardBody, LoadingSpinner, EmptyState, Button } from '@components/common'
 import { Layout, Header } from '@components/layout/Header'
 
 export const Home: React.FC = () => {
   const { user, loading, fetchUser } = useAppStore()
+  const { navigate } = useNavigationStore()
 
   useEffect(() => {
     telegram.init()
@@ -63,50 +65,36 @@ export const Home: React.FC = () => {
             <div className="space-y-2">
               {user.role === 'admin' && (
                 <>
-                  <a href="#/admin/developers" className="block">
-                    <Button className="w-full text-left">
-                      👨‍💻 Manage Developers
-                    </Button>
-                  </a>
-                  <a href="#/admin/access" className="block">
-                    <Button className="w-full text-left">
-                      🔐 Manage Access
-                    </Button>
-                  </a>
-                  <a href="#/admin/schedule" className="block">
-                    <Button className="w-full text-left">
-                      📅 View Schedule
-                    </Button>
-                  </a>
+                  <Button onClick={() => navigate('admin/developers')} className="w-full">
+                    👨‍💻 Manage Developers
+                  </Button>
+                  <Button onClick={() => navigate('admin/access')} className="w-full">
+                    🔐 Manage Access
+                  </Button>
+                  <Button onClick={() => navigate('admin/schedule')} className="w-full">
+                    📅 View Schedule
+                  </Button>
                 </>
               )}
 
               {user.role === 'sales_manager' && (
                 <>
-                  <a href="#/manager/schedule" className="block">
-                    <Button className="w-full text-left">
-                      📅 Check Schedule
-                    </Button>
-                  </a>
-                  <a href="#/manager/book-call" className="block">
-                    <Button className="w-full text-left">
-                      📞 Set Up Call
-                    </Button>
-                  </a>
-                  <a href="#/manager/my-calls" className="block">
-                    <Button className="w-full text-left">
-                      ⏸️ My Calls
-                    </Button>
-                  </a>
+                  <Button onClick={() => navigate('manager/schedule')} className="w-full">
+                    📅 Check Schedule
+                  </Button>
+                  <Button onClick={() => navigate('manager/book-call')} className="w-full">
+                    📞 Set Up Call
+                  </Button>
+                  <Button onClick={() => navigate('manager/my-calls')} className="w-full">
+                    ⏸️ My Calls
+                  </Button>
                 </>
               )}
 
               {user.role === 'developer' && (
-                <a href="#/developer/schedule" className="block">
-                  <Button className="w-full text-left">
-                    📅 My Schedule
-                  </Button>
-                </a>
+                <Button onClick={() => navigate('developer/schedule')} className="w-full">
+                  📅 My Schedule
+                </Button>
               )}
             </div>
           </CardBody>

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Card, CardTitle, CardBody, Button, Input } from '@components/common'
 import { Layout, Header } from '@components/layout/Header'
+import { useNavigationStore } from '@stores/navigationStore'
 
 interface Developer {
   id: number
@@ -13,6 +14,7 @@ interface TimeSlot {
 }
 
 export const BookCall: React.FC = () => {
+  const { navigate } = useNavigationStore()
   const [developers, setDevelopers] = useState<Developer[]>([])
   const [selectedDeveloper, setSelectedDeveloper] = useState<Developer | null>(null)
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0])
@@ -30,7 +32,7 @@ export const BookCall: React.FC = () => {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/developers`)
       const data = await response.json()
-      setDevelopers(data)
+      setDevelopers(data.data || data)
     } catch (error) {
       console.error('Error fetching developers:', error)
     }
@@ -72,7 +74,7 @@ export const BookCall: React.FC = () => {
 
       if (response.ok) {
         alert('✅ Call booked successfully!')
-        window.location.hash = '#/manager/my-calls'
+        navigate('manager/my-calls')
       }
     } catch (error) {
       console.error('Error booking call:', error)
@@ -111,9 +113,9 @@ export const BookCall: React.FC = () => {
             </CardBody>
           </Card>
 
-          <a href="#/home" className="block">
-            <Button className="w-full">🔙 Back to Menu</Button>
-          </a>
+          <Button onClick={() => navigate('home')} className="w-full">
+            🔙 Back to Menu
+          </Button>
         </div>
       </Layout>
     )
@@ -143,9 +145,9 @@ export const BookCall: React.FC = () => {
             <Button onClick={() => setStep('developer')} className="w-full">
               🔙 Change Developer
             </Button>
-            <a href="#/home" className="block">
-              <Button className="w-full">🏠 Home</Button>
-            </a>
+            <Button onClick={() => navigate('home')} className="w-full">
+              🏠 Home
+            </Button>
           </div>
         </div>
       </Layout>
@@ -223,9 +225,9 @@ export const BookCall: React.FC = () => {
           <Button onClick={() => setStep('time')} className="w-full">
             🔙 Change Time
           </Button>
-          <a href="#/home" className="block">
-            <Button className="w-full">🏠 Home</Button>
-          </a>
+          <Button onClick={() => navigate('home')} className="w-full">
+            🏠 Home
+          </Button>
         </div>
       </div>
     </Layout>

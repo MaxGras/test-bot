@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import { Home } from '@pages/Home'
 import { DeveloperManagement } from '@pages/admin/DeveloperManagement'
 import { AccessManagement } from '@pages/admin/AccessManagement'
@@ -8,29 +8,18 @@ import { MyCalls } from '@pages/manager/MyCalls'
 import { MySchedule } from '@pages/developer/MySchedule'
 import { Modal } from '@components/common'
 import { useModalStore } from '@stores/appStore'
+import { useNavigationStore } from '@stores/navigationStore'
 
 export const App: React.FC = () => {
   const { modal, hideModal } = useModalStore()
-  const [currentPage, setCurrentPage] = useState('home')
+  const { currentPage } = useNavigationStore()
 
   useEffect(() => {
-    // Prevent zoom on iOS
     document.addEventListener('touchmove', (e) => {
       if ((e as any).scale !== 1) {
         e.preventDefault()
       }
     })
-
-    // Handle hash-based routing
-    const handleHashChange = () => {
-      const path = window.location.hash.slice(1) || 'home'
-      setCurrentPage(path)
-    }
-
-    window.addEventListener('hashchange', handleHashChange)
-    handleHashChange()
-
-    return () => window.removeEventListener('hashchange', handleHashChange)
   }, [])
 
   const renderPage = () => {
@@ -50,8 +39,6 @@ export const App: React.FC = () => {
       case 'developer/schedule':
         return <MySchedule />
       case 'home':
-      case '':
-        return <Home />
       default:
         return <Home />
     }
@@ -61,7 +48,6 @@ export const App: React.FC = () => {
     <div className="bg-gray-50 min-h-screen">
       {renderPage()}
 
-      {/* Global Modal */}
       <Modal
         isOpen={modal.isOpen}
         title={modal.title}

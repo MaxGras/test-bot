@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Card, CardTitle, CardBody, Button, LoadingSpinner } from '@components/common'
 import { Layout, Header } from '@components/layout/Header'
+import { useNavigationStore } from '@stores/navigationStore'
 
 interface Developer {
   id: number
@@ -15,6 +16,7 @@ interface Call {
 }
 
 export const ScheduleView: React.FC = () => {
+  const { navigate } = useNavigationStore()
   const [developers, setDevelopers] = useState<Developer[]>([])
   const [selectedDeveloper, setSelectedDeveloper] = useState<Developer | null>(null)
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0])
@@ -85,9 +87,9 @@ export const ScheduleView: React.FC = () => {
             </CardBody>
           </Card>
 
-          <a href="#/home" className="block">
-            <Button className="w-full">🔙 Back to Menu</Button>
-          </a>
+          <Button onClick={() => navigate('home')} className="w-full">
+            🔙 Back to Menu
+          </Button>
         </div>
       </Layout>
     )

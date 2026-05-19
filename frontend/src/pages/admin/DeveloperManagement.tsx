@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Card, CardTitle, CardBody, Button, LoadingSpinner, Input } from '@components/common'
 import { Layout, Header } from '@components/layout/Header'
+import { useNavigationStore } from '@stores/navigationStore'
 
 interface Developer {
   id: number
@@ -9,6 +10,7 @@ interface Developer {
 }
 
 export const DeveloperManagement: React.FC = () => {
+  const { navigate } = useNavigationStore()
   const [developers, setDevelopers] = useState<Developer[]>([])
   const [loading, setLoading] = useState(false)
   const [showCreate, setShowCreate] = useState(false)
@@ -134,9 +136,9 @@ export const DeveloperManagement: React.FC = () => {
               ➕ Create Developer
             </Button>
 
-            <a href="#/home" className="block">
-              <Button className="w-full">🔙 Back to Menu</Button>
-            </a>
+            <Button onClick={() => navigate('home')} className="w-full">
+              🔙 Back to Menu
+            </Button>
           </>
         )}
       </div>
