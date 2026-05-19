@@ -11,8 +11,12 @@ RUN npm install || pnpm install || yarn install
 # Copy source code
 COPY . .
 
+# Copy and make entrypoint executable
+COPY entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
+
 # Expose port
 EXPOSE 5173
 
 # Run dev server with hot reload
-CMD npm run dev -- --host 0.0.0.0 --port ${PORT:-5173}
+ENTRYPOINT ["/app/entrypoint.sh"]
