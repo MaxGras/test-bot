@@ -2,8 +2,9 @@ import React, { useEffect } from 'react'
 import { useAppStore } from '@stores/appStore'
 import { useNavigationStore } from '@stores/navigationStore'
 import { telegram } from '@services/telegram'
-import { Card, CardTitle, CardBody, LoadingSpinner, EmptyState, Button } from '@components/common'
+import { LoadingSpinner, EmptyState } from '@components/common'
 import { Layout, Header } from '@components/layout/Header'
+import { TelegramButton, TelegramMessage } from '@components/telegram'
 
 export const Home: React.FC = () => {
   const { user, loading, fetchUser } = useAppStore()
@@ -43,94 +44,94 @@ export const Home: React.FC = () => {
 
   return (
     <Layout hasNavigation={false}>
-      <Header title="Developer Call Scheduler" />
+      <Header title="👤 Main Menu" />
       <div className="p-4 space-y-4">
-        {/* User Info Card */}
-        <Card>
-          <CardBody>
-            <div className="space-y-2">
-              <p className="text-sm text-secondary-600">
-                Welcome, <span className="font-semibold">{user.first_name}</span>
-              </p>
-              <p className="text-xs text-secondary-500">Role: {user.role}</p>
-              <p className="text-xs text-secondary-500">Status: {user.is_active ? '✓ Active' : '✗ Inactive'}</p>
-            </div>
-          </CardBody>
-        </Card>
+        {/* Welcome Message */}
+        <TelegramMessage icon="👤">
+          Welcome, <span className="font-bold">{user.first_name}</span>
+          {'\n\n'}
+          <span className="text-xs text-gray-600">
+            Role: {user.role}
+            {'\n'}
+            Status: {user.is_active ? '🟢 Active' : '🔴 Inactive'}
+          </span>
+        </TelegramMessage>
 
         {/* Role-based Menu */}
-        <Card>
-          <CardTitle>Menu</CardTitle>
-          <CardBody>
-            <div className="space-y-2">
-              {user.role === 'admin' && (
-                <>
-                  <Button onClick={() => navigate('admin/developers')} className="w-full">
-                    👨‍💻 Manage Developers
-                  </Button>
-                  <Button onClick={() => navigate('admin/access')} className="w-full">
-                    🔐 Manage Access
-                  </Button>
-                  <Button onClick={() => navigate('admin/schedule')} className="w-full">
-                    📅 View Schedule
-                  </Button>
-                </>
-              )}
+        <div className="space-y-2">
+          {user.role === 'admin' && (
+            <>
+              <TelegramButton onClick={() => navigate('admin/developers')}>
+                Manage Developers
+              </TelegramButton>
+              <TelegramButton onClick={() => navigate('admin/access')}>
+                Manage Access
+              </TelegramButton>
+              <TelegramButton onClick={() => navigate('admin/schedule')}>
+                View Schedule
+              </TelegramButton>
+            </>
+          )}
 
-              {user.role === 'sales_manager' && (
-                <>
-                  <Button onClick={() => navigate('manager/schedule')} className="w-full">
-                    📅 Check Schedule
-                  </Button>
-                  <Button onClick={() => navigate('manager/book-call')} className="w-full">
-                    📞 Set Up Call
-                  </Button>
-                  <Button onClick={() => navigate('manager/my-calls')} className="w-full">
-                    ⏸️ My Calls
-                  </Button>
-                </>
-              )}
+          {user.role === 'sales_manager' && (
+            <>
+              <TelegramButton onClick={() => navigate('manager/schedule')}>
+                📅 Check Schedule
+              </TelegramButton>
+              <TelegramButton onClick={() => navigate('manager/book-call')}>
+                📞 Set Up Call
+              </TelegramButton>
+              <TelegramButton onClick={() => navigate('manager/my-calls')}>
+                ⏸️ My Calls
+              </TelegramButton>
+            </>
+          )}
 
-              {user.role === 'developer' && (
-                <Button onClick={() => navigate('developer/schedule')} className="w-full">
-                  📅 My Schedule
-                </Button>
-              )}
-            </div>
-          </CardBody>
-        </Card>
+          {user.role === 'developer' && (
+            <TelegramButton onClick={() => navigate('developer/schedule')}>
+              📅 My Schedule
+            </TelegramButton>
+          )}
+        </div>
 
-        {/* Quick Stats */}
-        <Card>
-          <CardTitle>Quick Info</CardTitle>
-          <CardBody>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-primary-50 p-3 rounded-lg">
-                <p className="text-2xl font-bold text-primary-600">—</p>
-                <p className="text-xs text-secondary-600">Upcoming Calls</p>
-              </div>
-              <div className="bg-success-50 p-3 rounded-lg">
-                <p className="text-2xl font-bold text-success-600">—</p>
-                <p className="text-xs text-secondary-600">Completed Calls</p>
-              </div>
-            </div>
-          </CardBody>
-        </Card>
-
-        {/* Role Info */}
-        <Card>
-          <CardTitle>Your Role</CardTitle>
-          <CardBody>
-            <p className="text-sm text-secondary-700">
-              {user.role === 'admin' &&
-                'You have full access to manage developers, users, calls, and view all schedules.'}
-              {user.role === 'sales_manager' &&
-                'You can view developer schedules and book calls with developers.'}
-              {user.role === 'developer' &&
-                'You are a developer and can view your scheduled calls.'}
-            </p>
-          </CardBody>
-        </Card>
+        {/* Role Description */}
+        <TelegramMessage>
+          {user.role === 'admin' && (
+            <>
+              You have full access to:
+              {'\n\n'}
+              • Manage developers
+              {'\n'}
+              • Manage user access
+              {'\n'}
+              • View all schedules
+              {'\n'}
+              • Delete calls
+            </>
+          )}
+          {user.role === 'sales_manager' && (
+            <>
+              You can:
+              {'\n\n'}
+              • View developer schedules
+              {'\n'}
+              • Book calls with developers
+              {'\n'}
+              • Cancel your own calls
+              {'\n'}
+              • Toggle notifications
+            </>
+          )}
+          {user.role === 'developer' && (
+            <>
+              You can:
+              {'\n\n'}
+              • View your scheduled calls
+              {'\n'}
+              • See call details
+            </>
+          )}
+        </TelegramMessage>
       </div>
     </Layout>
   )

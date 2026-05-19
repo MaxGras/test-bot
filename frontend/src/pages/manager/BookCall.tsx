@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
-import { Card, CardTitle, CardBody, Button, Input } from '@components/common'
+import { Input } from '@components/common'
 import { Layout, Header } from '@components/layout/Header'
+import { TelegramButton, TelegramMessage } from '@components/telegram'
 import { useNavigationStore } from '@stores/navigationStore'
 
 interface Developer {
@@ -8,21 +9,20 @@ interface Developer {
   name: string
 }
 
-interface TimeSlot {
-  time: string
-  available: boolean
-}
-
 export const BookCall: React.FC = () => {
   const { navigate } = useNavigationStore()
   const [developers, setDevelopers] = useState<Developer[]>([])
   const [selectedDeveloper, setSelectedDeveloper] = useState<Developer | null>(null)
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0])
-  const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([])
   const [selectedTime, setSelectedTime] = useState<string>('')
+  const [duration, setDuration] = useState<30 | 60 | 90>(60)
   const [callTitle, setCallTitle] = useState('')
+  const [callLink, setCallLink] = useState('')
+  const [salaryFork, setSalaryFork] = useState('')
+  const [jobPostLink, setJobPostLink] = useState('')
   const [loading, setLoading] = useState(false)
-  const [step, setStep] = useState<'developer' | 'date' | 'time' | 'details'>('developer')
+  const [error, setError] = useState<string>('')
+  const [step, setStep] = useState<'developer' | 'date' | 'time' | 'duration' | 'account' | 'link' | 'salary' | 'job' | 'confirm'>('developer')
 
   useEffect(() => {
     fetchDevelopers()
@@ -38,198 +38,384 @@ export const BookCall: React.FC = () => {
     }
   }
 
-  const fetchTimeSlots = async () => {
-    if (!selectedDeveloper) return
-
-    setLoading(true)
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/developers/${selectedDeveloper.id}/available-slots?date=${selectedDate}`
-      )
-      const data = await response.json()
-      setTimeSlots(data)
-      setStep('time')
-    } catch (error) {
-      console.error('Error fetching time slots:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
   const handleBookCall = async () => {
     if (!selectedDeveloper || !selectedTime || !callTitle.trim()) return
 
     setLoading(true)
+    setError('')
     try {
+      const startDateTime = `${selectedDate}T${selectedTime}:00`
+      const endDate = new Date(startDateTime)
+      endDate.setMinutes(endDate.getMinutes() + duration)
+      const endDateTime = endDate.toISOString().split('.')[0]
+
       const response = await fetch(`${import.meta.env.VITE_API_URL}/calls`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          title: callTitle,
           developer_id: selectedDeveloper.id,
-          start_time: `${selectedDate}T${selectedTime}:00`,
-          end_time: `${selectedDate}T${new Date(new Date(`2024-01-01T${selectedTime}:00`).getTime() + 3600000).toTimeString().slice(0, 5)}:00`,
+          start_time: startDateTime,
+          end_time: endDateTime,
+          title: callTitle,
+          call_link: callLink || null,
+          salary_fork: salaryFork || null,
+          job_post_link: jobPostLink || null,
         }),
       })
 
       if (response.ok) {
-        alert('✅ Call booked successfully!')
         navigate('manager/my-calls')
+      } else {
+        const data = await response.json()
+        setError(data.detail || 'Error booking call')
       }
     } catch (error) {
       console.error('Error booking call:', error)
-      alert('❌ Error booking call')
+      setError('Error booking call. Please try again.')
     } finally {
       setLoading(false)
     }
   }
 
+  // Step 1: Select Developer
   if (step === 'developer') {
     return (
       <Layout hasNavigation={false}>
-        <Header title="Set Up Call" />
+        <Header title="📞 Set Up Call" />
         <div className="p-4 space-y-4">
-          <Card>
-            <CardTitle>Select Developer</CardTitle>
-            <CardBody>
-              {developers.length === 0 ? (
-                <p className="text-sm text-secondary-600">No developers available</p>
-              ) : (
-                <div className="space-y-2">
-                  {developers.map((dev) => (
-                    <Button
-                      key={dev.id}
-                      onClick={() => {
-                        setSelectedDeveloper(dev)
-                        setStep('date')
-                      }}
-                      className="w-full text-left"
-                    >
-                      👨‍💻 {dev.name}
-                    </Button>
-                  ))}
-                </div>
-              )}
-            </CardBody>
-          </Card>
+          <TelegramMessage icon="👨‍💻">
+            Select a developer:
+          </TelegramMessage>
 
-          <Button onClick={() => navigate('home')} className="w-full">
-            🔙 Back to Menu
-          </Button>
+          <div className="space-y-2">
+            {developers.length === 0 ? (
+              <TelegramMessage>❌ No developers available</TelegramMessage>
+            ) : (
+              developers.map((dev) => (
+                <TelegramButton
+                  key={dev.id}
+                  onClick={() => {
+                    setSelectedDeveloper(dev)
+                    setStep('date')
+                  }}
+                >
+                  👨‍💻 {dev.name}
+                </TelegramButton>
+              ))
+            )}
+          </div>
+
+          <TelegramButton onClick={() => navigate('home')} variant="secondary">
+            🔙 Back
+          </TelegramButton>
         </div>
       </Layout>
     )
   }
 
+  // Step 2: Select Date
   if (step === 'date') {
     return (
       <Layout hasNavigation={false}>
-        <Header title="Select Date" />
+        <Header title="📅 Select Date" />
         <div className="p-4 space-y-4">
-          <Card>
-            <CardBody>
-              <p className="text-sm font-semibold mb-3">👨‍💻 {selectedDeveloper?.name}</p>
-              <input
-                type="date"
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                className="w-full px-3 py-2 border rounded-lg text-sm"
-              />
-            </CardBody>
-          </Card>
+          <TelegramMessage icon="📅">
+            {`When should the call be?\n\nSelected: 👨‍💻 ${selectedDeveloper?.name}`}
+          </TelegramMessage>
 
           <div className="space-y-2">
-            <Button onClick={fetchTimeSlots} className="w-full" disabled={loading}>
-              {loading ? 'Loading...' : '📅 Check Available Times'}
-            </Button>
-            <Button onClick={() => setStep('developer')} className="w-full">
+            <TelegramButton onClick={() => {
+              setSelectedDate(new Date().toISOString().split('T')[0])
+              setStep('time')
+            }}>
+              📌 Today
+            </TelegramButton>
+            <TelegramButton onClick={() => {
+              const tomorrow = new Date()
+              tomorrow.setDate(tomorrow.getDate() + 1)
+              setSelectedDate(tomorrow.toISOString().split('T')[0])
+              setStep('time')
+            }}>
+              📌 Tomorrow
+            </TelegramButton>
+            <TelegramButton onClick={() => setStep('time')}>
+              📅 Pick Date
+            </TelegramButton>
+          </div>
+
+          <div className="mt-4">
+            <p className="text-xs text-gray-600 mb-2">Or choose custom date:</p>
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+            />
+            <TelegramButton onClick={() => setStep('time')} className="mt-2">
+              ✓ Confirm Date
+            </TelegramButton>
+          </div>
+
+          <div className="space-y-2 mt-4">
+            <TelegramButton onClick={() => setStep('developer')} variant="secondary">
               🔙 Change Developer
-            </Button>
-            <Button onClick={() => navigate('home')} className="w-full">
+            </TelegramButton>
+            <TelegramButton onClick={() => navigate('home')} variant="secondary">
               🏠 Home
-            </Button>
+            </TelegramButton>
           </div>
         </div>
       </Layout>
     )
   }
 
+  // Step 3: Select Time
   if (step === 'time') {
     return (
       <Layout hasNavigation={false}>
-        <Header title="Select Time" />
+        <Header title="⏰ Select Time" />
         <div className="p-4 space-y-4">
-          <Card>
-            <CardTitle>Available Times</CardTitle>
-            <CardBody>
-              {timeSlots.length === 0 ? (
-                <p className="text-sm text-secondary-600">❌ No available slots</p>
-              ) : (
-                <div className="space-y-2">
-                  {timeSlots
-                    .filter((slot) => slot.available)
-                    .map((slot) => (
-                      <Button
-                        key={slot.time}
-                        onClick={() => {
-                          setSelectedTime(slot.time)
-                          setStep('details')
-                        }}
-                        className="w-full text-left"
-                      >
-                        🕐 {slot.time}
-                      </Button>
-                    ))}
-                </div>
-              )}
-            </CardBody>
-          </Card>
+          <TelegramMessage icon="⏰">
+            {`Enter start time (HH:MM):\n\nSelected: 📅 ${selectedDate}`}
+          </TelegramMessage>
 
-          <Button onClick={() => setStep('date')} className="w-full">
-            📅 Change Date
-          </Button>
+          <Input
+            type="time"
+            value={selectedTime}
+            onChange={(e) => setSelectedTime(e.target.value)}
+            placeholder="HH:MM"
+          />
+
+          <div className="space-y-2">
+            <TelegramButton onClick={() => setStep('duration')} disabled={!selectedTime}>
+              ✓ Continue
+            </TelegramButton>
+            <TelegramButton onClick={() => setStep('date')} variant="secondary">
+              🔙 Change Date
+            </TelegramButton>
+          </div>
         </div>
       </Layout>
     )
   }
 
-  return (
-    <Layout hasNavigation={false}>
-      <Header title="Confirm Call" />
-      <div className="p-4 space-y-4">
-        <Card>
-          <CardTitle>Call Details</CardTitle>
-          <CardBody>
-            <div className="space-y-3">
-              <div>
-                <p className="text-xs text-secondary-600">Developer</p>
-                <p className="text-sm font-semibold">👨‍💻 {selectedDeveloper?.name}</p>
-              </div>
-              <div>
-                <p className="text-xs text-secondary-600">Date & Time</p>
-                <p className="text-sm font-semibold">📅 {selectedDate} at {selectedTime}</p>
-              </div>
-              <Input
-                placeholder="Call title"
-                value={callTitle}
-                onChange={(e) => setCallTitle(e.target.value)}
-              />
-            </div>
-          </CardBody>
-        </Card>
+  // Step 4: Select Duration
+  if (step === 'duration') {
+    return (
+      <Layout hasNavigation={false}>
+        <Header title="⏱️ Duration" />
+        <div className="p-4 space-y-4">
+          <TelegramMessage icon="⏱️">
+            {`How long should the call be?\n\nTime: ⏰ ${selectedTime}`}
+          </TelegramMessage>
+
+          <div className="space-y-2">
+            <TelegramButton
+              onClick={() => {
+                setDuration(30)
+                setStep('account')
+              }}
+              variant={duration === 30 ? 'primary' : 'secondary'}
+            >
+              {duration === 30 ? '✓' : ''} ⏱ 30 min
+            </TelegramButton>
+            <TelegramButton
+              onClick={() => {
+                setDuration(60)
+                setStep('account')
+              }}
+              variant={duration === 60 ? 'primary' : 'secondary'}
+            >
+              {duration === 60 ? '✓' : ''} ⏱ 1 hour
+            </TelegramButton>
+            <TelegramButton
+              onClick={() => {
+                setDuration(90)
+                setStep('account')
+              }}
+              variant={duration === 90 ? 'primary' : 'secondary'}
+            >
+              {duration === 90 ? '✓' : ''} ⏱ 1.5 hours
+            </TelegramButton>
+          </div>
+
+          <TelegramButton onClick={() => setStep('time')} variant="secondary">
+            🔙 Change Time
+          </TelegramButton>
+        </div>
+      </Layout>
+    )
+  }
+
+  // Step 5: Account Name
+  if (step === 'account') {
+    return (
+      <Layout hasNavigation={false}>
+        <Header title="📌 Account Name" />
+        <div className="p-4 space-y-4">
+          <TelegramMessage icon="📌">
+            {`Enter account name:\n\nDuration: ⏱ ${duration === 30 ? '30 min' : duration === 60 ? '1 hour' : '1.5 hours'}`}
+          </TelegramMessage>
+
+          <Input
+            placeholder="Company or Account Name"
+            value={callTitle}
+            onChange={(e) => setCallTitle(e.target.value)}
+          />
+
+          <div className="space-y-2">
+            <TelegramButton onClick={() => setStep('link')} disabled={!callTitle.trim()}>
+              ✓ Continue
+            </TelegramButton>
+            <TelegramButton onClick={() => setStep('duration')} variant="secondary">
+              🔙 Change Duration
+            </TelegramButton>
+          </div>
+        </div>
+      </Layout>
+    )
+  }
+
+  // Step 6: Call Link
+  if (step === 'link') {
+    return (
+      <Layout hasNavigation={false}>
+        <Header title="📎 Call Link" />
+        <div className="p-4 space-y-4">
+          <TelegramMessage icon="📎">
+            {`Enter call link (or skip):\n\nAccount: 📌 ${callTitle}`}
+          </TelegramMessage>
+
+          <Input
+            placeholder="https://zoom.us/... (optional)"
+            value={callLink}
+            onChange={(e) => setCallLink(e.target.value)}
+          />
+
+          <div className="space-y-2">
+            <TelegramButton onClick={() => setStep('salary')}>
+              ✓ Continue
+            </TelegramButton>
+            <TelegramButton onClick={() => setStep('salary')} variant="success">
+              ⏭️ Skip
+            </TelegramButton>
+            <TelegramButton onClick={() => setStep('account')} variant="secondary">
+              🔙 Change Account
+            </TelegramButton>
+          </div>
+        </div>
+      </Layout>
+    )
+  }
+
+  // Step 7: Salary Fork
+  if (step === 'salary') {
+    return (
+      <Layout hasNavigation={false}>
+        <Header title="💰 Salary Fork" />
+        <div className="p-4 space-y-4">
+          <TelegramMessage icon="💰">
+            {`Enter salary fork (or skip):\n\nLink: ${callLink ? '✓ Added' : '⏭️ Skipped'}`}
+          </TelegramMessage>
+
+          <Input
+            placeholder="50k-70k (optional)"
+            value={salaryFork}
+            onChange={(e) => setSalaryFork(e.target.value)}
+          />
+
+          <div className="space-y-2">
+            <TelegramButton onClick={() => setStep('job')}>
+              ✓ Continue
+            </TelegramButton>
+            <TelegramButton onClick={() => setStep('job')} variant="success">
+              ⏭️ Skip
+            </TelegramButton>
+            <TelegramButton onClick={() => setStep('link')} variant="secondary">
+              🔙 Change Link
+            </TelegramButton>
+          </div>
+        </div>
+      </Layout>
+    )
+  }
+
+  // Step 8: Job Post Link
+  if (step === 'job') {
+    return (
+      <Layout hasNavigation={false}>
+        <Header title="📄 Job Post" />
+        <div className="p-4 space-y-4">
+          <TelegramMessage icon="📄">
+            {`Enter job post link (or skip):\n\nSalary: ${salaryFork ? '✓ Added' : '⏭️ Skipped'}`}
+          </TelegramMessage>
+
+          <Input
+            placeholder="https://jobs.example.com/... (optional)"
+            value={jobPostLink}
+            onChange={(e) => setJobPostLink(e.target.value)}
+          />
+
+          <div className="space-y-2">
+            <TelegramButton onClick={() => setStep('confirm')}>
+              ✓ Continue
+            </TelegramButton>
+            <TelegramButton onClick={() => setStep('confirm')} variant="success">
+              ⏭️ Skip
+            </TelegramButton>
+            <TelegramButton onClick={() => setStep('salary')} variant="secondary">
+              🔙 Change Salary
+            </TelegramButton>
+          </div>
+        </div>
+      </Layout>
+    )
+  }
+
+  // Step 9: Confirm & Book
+  if (step === 'confirm') {
+    return (
+      <Layout hasNavigation={false}>
+        <Header title="✅ Confirm Call" />
+        <div className="p-4 space-y-4">
+        <TelegramMessage icon="✅">
+          Call Details:
+          {'\n\n'}
+          📌 {callTitle}
+          {'\n'}
+          👨‍💻 {selectedDeveloper?.name}
+          {'\n'}
+          📅 {selectedDate}
+          {'\n'}
+          ⏰ {selectedTime}
+          {'\n'}
+          ⏱ {duration === 30 ? '30 min' : duration === 60 ? '1 hour' : '1.5 hours'}
+          {callLink && `\n📎 ${callLink}`}
+          {salaryFork && `\n💰 ${salaryFork}`}
+          {jobPostLink && `\n📄 ${jobPostLink}`}
+        </TelegramMessage>
+
+        {error && (
+          <TelegramMessage icon="❌">
+            {error}
+          </TelegramMessage>
+        )}
 
         <div className="space-y-2">
-          <Button onClick={handleBookCall} className="w-full" disabled={loading}>
-            {loading ? 'Booking...' : '✅ Book Call'}
-          </Button>
-          <Button onClick={() => setStep('time')} className="w-full">
-            🔙 Change Time
-          </Button>
-          <Button onClick={() => navigate('home')} className="w-full">
+          <TelegramButton onClick={handleBookCall} disabled={loading} variant="success">
+            {loading ? '⏳ Booking...' : '✅ Book Call'}
+          </TelegramButton>
+          <TelegramButton onClick={() => setStep('job')} variant="secondary" disabled={loading}>
+            🔙 Change Details
+          </TelegramButton>
+          <TelegramButton onClick={() => navigate('home')} variant="secondary" disabled={loading}>
             🏠 Home
-          </Button>
+          </TelegramButton>
         </div>
       </div>
-    </Layout>
-  )
+      </Layout>
+    )
+  }
+
+  return null
 }

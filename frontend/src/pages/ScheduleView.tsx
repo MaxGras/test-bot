@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
-import { Card, CardTitle, CardBody, Button, LoadingSpinner } from '@components/common'
+import { LoadingSpinner } from '@components/common'
 import { Layout, Header } from '@components/layout/Header'
+import { TelegramButton, TelegramMessage } from '@components/telegram'
 import { useNavigationStore } from '@stores/navigationStore'
 
 interface Developer {
@@ -64,32 +65,30 @@ export const ScheduleView: React.FC = () => {
   if (step === 'developer') {
     return (
       <Layout hasNavigation={false}>
-        <Header title="View Schedule" />
+        <Header title="📅 View Schedule" />
         <div className="p-4 space-y-4">
-          <Card>
-            <CardTitle>Select Developer</CardTitle>
-            <CardBody>
-              {developers.length === 0 ? (
-                <p className="text-sm text-secondary-600">No developers available</p>
-              ) : (
-                <div className="space-y-2">
-                  {developers.map((dev) => (
-                    <Button
-                      key={dev.id}
-                      onClick={() => handleSelectDeveloper(dev)}
-                      className="w-full text-left"
-                    >
-                      👨‍💻 {dev.name}
-                    </Button>
-                  ))}
-                </div>
-              )}
-            </CardBody>
-          </Card>
+          <TelegramMessage icon="👨‍💻">
+            Choose a developer:
+          </TelegramMessage>
 
-          <Button onClick={() => navigate('home')} className="w-full">
-            🔙 Back to Menu
-          </Button>
+          <div className="space-y-2">
+            {developers.length === 0 ? (
+              <TelegramMessage>❌ No developers yet</TelegramMessage>
+            ) : (
+              developers.map((dev) => (
+                <TelegramButton
+                  key={dev.id}
+                  onClick={() => handleSelectDeveloper(dev)}
+                >
+                  👨‍💻 {dev.name}
+                </TelegramButton>
+              ))
+            )}
+          </div>
+
+          <TelegramButton onClick={() => navigate('home')} variant="secondary">
+            🔙 Back
+          </TelegramButton>
         </div>
       </Layout>
     )
@@ -98,30 +97,49 @@ export const ScheduleView: React.FC = () => {
   if (step === 'date') {
     return (
       <Layout hasNavigation={false}>
-        <Header title="Select Date" />
+        <Header title="📅 Select Date" />
         <div className="p-4 space-y-4">
-          <Card>
-            <CardBody>
-              <p className="text-sm font-semibold mb-3">👨‍💻 {selectedDeveloper?.name}</p>
-              <input
-                type="date"
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                className="w-full px-3 py-2 border rounded-lg text-sm"
-              />
-            </CardBody>
-          </Card>
+          <TelegramMessage icon="📅">
+            {`Selected: 👨‍💻 ${selectedDeveloper?.name}\n\nChoose a date:`}
+          </TelegramMessage>
 
           <div className="space-y-2">
-            <Button onClick={handleSelectDate} className="w-full">
-              📅 View Schedule
-            </Button>
-            <Button onClick={() => setStep('developer')} className="w-full">
+            <TelegramButton onClick={() => {
+              setSelectedDate(new Date().toISOString().split('T')[0])
+              handleSelectDate()
+            }}>
+              📌 Today
+            </TelegramButton>
+            <TelegramButton onClick={() => {
+              const tomorrow = new Date()
+              tomorrow.setDate(tomorrow.getDate() + 1)
+              setSelectedDate(tomorrow.toISOString().split('T')[0])
+              handleSelectDate()
+            }}>
+              📌 Tomorrow
+            </TelegramButton>
+          </div>
+
+          <div className="mt-4">
+            <p className="text-xs text-gray-600 mb-2">Or pick custom date:</p>
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+            />
+          </div>
+
+          <div className="space-y-2 mt-4">
+            <TelegramButton onClick={handleSelectDate} disabled={loading}>
+              {loading ? '⏳ Loading...' : '📅 View Schedule'}
+            </TelegramButton>
+            <TelegramButton onClick={() => setStep('developer')} variant="secondary">
               🔙 Change Developer
-            </Button>
-            <a href="/" className="block">
-              <Button className="w-full">🏠 Home</Button>
-            </a>
+            </TelegramButton>
+            <TelegramButton onClick={() => navigate('home')} variant="secondary">
+              🏠 Home
+            </TelegramButton>
           </div>
         </div>
       </Layout>
@@ -131,7 +149,7 @@ export const ScheduleView: React.FC = () => {
   if (loading) {
     return (
       <Layout hasNavigation={false}>
-        <Header title="Schedule" />
+        <Header title="📅 Loading..." />
         <div className="flex items-center justify-center h-full">
           <LoadingSpinner />
         </div>
@@ -141,37 +159,44 @@ export const ScheduleView: React.FC = () => {
 
   return (
     <Layout hasNavigation={false}>
-      <Header title="Schedule" />
+      <Header title="📅 Schedule" />
       <div className="p-4 space-y-4">
-        <Card>
-          <CardTitle>
-            {selectedDeveloper?.name} - {selectedDate}
-          </CardTitle>
-          <CardBody>
-            {calls.length === 0 ? (
-              <p className="text-sm text-secondary-600">✅ No calls scheduled</p>
-            ) : (
-              <div className="space-y-2">
-                {calls.map((call) => (
-                  <div key={call.id} className="bg-primary-50 p-3 rounded-lg">
-                    <p className="text-sm font-semibold">{call.title}</p>
-                    <p className="text-xs text-secondary-600">
-                      {call.start_time} - {call.end_time}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardBody>
-        </Card>
+        <TelegramMessage icon="📅">
+          {`Schedule for ${selectedDeveloper?.name}\n${selectedDate}`}
+        </TelegramMessage>
+
+        {calls.length === 0 ? (
+          <TelegramMessage icon="✅">
+            No calls scheduled
+          </TelegramMessage>
+        ) : (
+          <div className="bg-blue-50 rounded-lg p-4 border border-blue-200 space-y-2">
+            {calls.map((call) => {
+              const startTime = new Date(call.start_time).toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+              })
+              const endTime = new Date(call.end_time).toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+              })
+              return (
+                <div key={call.id} className="text-sm">
+                  <p className="font-semibold">• {call.title}</p>
+                  <p className="text-xs text-gray-600">⏰ {startTime} - {endTime}</p>
+                </div>
+              )
+            })}
+          </div>
+        )}
 
         <div className="space-y-2">
-          <Button onClick={() => setStep('date')} className="w-full">
+          <TelegramButton onClick={() => setStep('date')}>
             📅 Another Day
-          </Button>
-          <a href="/" className="block">
-            <Button className="w-full">🏠 Home</Button>
-          </a>
+          </TelegramButton>
+          <TelegramButton onClick={() => navigate('home')} variant="secondary">
+            🔙 Back to Menu
+          </TelegramButton>
         </div>
       </div>
     </Layout>
