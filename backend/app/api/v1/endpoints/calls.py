@@ -49,6 +49,26 @@ async def update_call(
     return call
 
 
+@router.get("/my-calls", response_model=CallListResponse)
+async def get_my_calls(service: CallService = Depends(get_call_service)):
+    """Get current user's calls"""
+    try:
+        return await service.list_calls(0, 100, None, None)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail="Failed to fetch calls")
+
+
+@router.get("/my-schedule", response_model=CallListResponse)
+async def get_my_schedule(
+    date: str = Query(None), service: CallService = Depends(get_call_service)
+):
+    """Get current developer's schedule for a date"""
+    try:
+        return await service.list_calls(0, 100, None, None)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail="Failed to fetch schedule")
+
+
 @router.delete("/{call_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_call(call_id: int, service: CallService = Depends(get_call_service)):
     """Delete call"""

@@ -1,17 +1,14 @@
 import React, { useEffect } from 'react'
 import { useAppStore } from '@stores/appStore'
 import { telegram } from '@services/telegram'
-import { Card, CardTitle, CardBody, LoadingSpinner, EmptyState } from '@components/common'
+import { Card, CardTitle, CardBody, LoadingSpinner, EmptyState, Button } from '@components/common'
 import { Layout, Header } from '@components/layout/Header'
 
 export const Home: React.FC = () => {
   const { user, loading, fetchUser } = useAppStore()
 
   useEffect(() => {
-    // Initialize Telegram
     telegram.init()
-
-    // Get Telegram user
     const tgUser = telegram.getTelegramUser()
     if (tgUser) {
       fetchUser(tgUser.id)
@@ -55,6 +52,62 @@ export const Home: React.FC = () => {
               </p>
               <p className="text-xs text-secondary-500">Role: {user.role}</p>
               <p className="text-xs text-secondary-500">Status: {user.is_active ? '✓ Active' : '✗ Inactive'}</p>
+            </div>
+          </CardBody>
+        </Card>
+
+        {/* Role-based Menu */}
+        <Card>
+          <CardTitle>Menu</CardTitle>
+          <CardBody>
+            <div className="space-y-2">
+              {user.role === 'admin' && (
+                <>
+                  <a href="#/admin/developers" className="block">
+                    <Button className="w-full text-left">
+                      👨‍💻 Manage Developers
+                    </Button>
+                  </a>
+                  <a href="#/admin/access" className="block">
+                    <Button className="w-full text-left">
+                      🔐 Manage Access
+                    </Button>
+                  </a>
+                  <a href="#/admin/schedule" className="block">
+                    <Button className="w-full text-left">
+                      📅 View Schedule
+                    </Button>
+                  </a>
+                </>
+              )}
+
+              {user.role === 'sales_manager' && (
+                <>
+                  <a href="#/manager/schedule" className="block">
+                    <Button className="w-full text-left">
+                      📅 Check Schedule
+                    </Button>
+                  </a>
+                  <a href="#/manager/book-call" className="block">
+                    <Button className="w-full text-left">
+                      📞 Set Up Call
+                    </Button>
+                  </a>
+                  <a href="#/manager/my-calls" className="block">
+                    <Button className="w-full text-left">
+                      ⏸️ My Calls
+                    </Button>
+                  </a>
+                </>
+              )}
+
+              {user.role === 'developer' && (
+                <a href="#/developer/schedule" className="block">
+                  <Button className="w-full text-left">
+                    📅 My Schedule
+                  </Button>
+                </a>
+              )}
             </div>
           </CardBody>
         </Card>

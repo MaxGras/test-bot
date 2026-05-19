@@ -51,6 +51,32 @@ async def update_developer(
     return developer
 
 
+@router.get("/{developer_id}/calls", response_model=list)
+async def get_developer_calls(
+    developer_id: int,
+    date: str = None,
+    service: DeveloperService = Depends(get_developer_service),
+):
+    """Get calls for a developer on a specific date"""
+    try:
+        return await service.get_developer_calls_by_date(developer_id, date)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail="Failed to fetch calls")
+
+
+@router.get("/{developer_id}/available-slots", response_model=list)
+async def get_available_slots(
+    developer_id: int,
+    date: str = None,
+    service: DeveloperService = Depends(get_developer_service),
+):
+    """Get available time slots for a developer"""
+    try:
+        return await service.get_available_slots(developer_id, date)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail="Failed to fetch slots")
+
+
 @router.delete("/{developer_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_developer(
     developer_id: int, service: DeveloperService = Depends(get_developer_service)
