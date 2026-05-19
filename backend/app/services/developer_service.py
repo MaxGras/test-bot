@@ -11,7 +11,7 @@ class DeveloperService:
     """Developer business logic"""
 
     def __init__(self, session: AsyncSession):
-        self.repo = DeveloperRepository(session)
+        self.repo = DeveloperRepository(session, Developer)
         self.session = session
 
     async def create_developer(self, developer_in: DeveloperCreate):
