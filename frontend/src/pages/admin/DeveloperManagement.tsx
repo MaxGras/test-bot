@@ -35,22 +35,37 @@ export const DeveloperManagement: React.FC = () => {
   }
 
   const handleCreateDeveloper = async () => {
-    if (!newDeveloperName.trim()) return
+    if (!newDeveloperName.trim()) {
+      alert('Please enter a developer name')
+      return
+    }
 
     try {
+      console.log('Creating developer:', newDeveloperName)
       const response = await fetch(`${import.meta.env.VITE_API_URL}/developers`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: newDeveloperName }),
+        body: JSON.stringify({
+          name: newDeveloperName,
+          is_available: true
+        }),
       })
 
+      console.log('Response status:', response.status)
+      const data = await response.json()
+      console.log('Response data:', data)
+
       if (response.ok) {
+        alert(`✅ Developer '${newDeveloperName}' created successfully!`)
         setNewDeveloperName('')
         setShowCreate(false)
         await fetchDevelopers()
+      } else {
+        alert(`❌ Error: ${data.detail || 'Failed to create developer'}`)
       }
     } catch (error) {
       console.error('Error creating developer:', error)
+      alert(`❌ Error: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
 

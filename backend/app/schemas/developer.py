@@ -13,7 +13,7 @@ class DeveloperBase(BaseModel):
 
 class DeveloperCreate(DeveloperBase):
     """Create developer request"""
-    user_id: int
+    user_id: Optional[int] = None
 
 
 class DeveloperUpdate(BaseModel):

@@ -2,7 +2,9 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..repositories.developer_repository import DeveloperRepository
+from ..repositories.user_repository import UserRepository
 from ..schemas.developer import DeveloperCreate, DeveloperUpdate
+from ..models.user import User, UserRole
 
 
 class DeveloperService:
@@ -10,10 +12,32 @@ class DeveloperService:
 
     def __init__(self, session: AsyncSession):
         self.repo = DeveloperRepository(session)
+        self.session = session
+        self.user_repo = UserRepository(session)
 
     async def create_developer(self, developer_in: DeveloperCreate):
         """Create a new developer"""
-        return await self.repo.create(developer_in)
+        user_id = developer_in.user_id
+
+        # If no user_id provided, create a user automatically
+        if not user_id:
+            user = User(
+                telegram_id=0,
+                role=UserRole.DEVELOPER,
+                first_name=developer_in.name,
+                is_active=True
+            )
+            self.session.add(user)
+            await self.session.flush()
+            user_id = user.id
+
+        # Create developer with the user_id
+        developer_data = developer_in.dict(exclude_unset=True)
+        developer_data['user_id'] = user_id
+
+        from ..schemas.developer import DeveloperCreate as DC
+        developer_create = DC(**developer_data)
+        return await self.repo.create(developer_create)
 
     async def get_developer(self, developer_id: int):
         """Get developer by ID"""
