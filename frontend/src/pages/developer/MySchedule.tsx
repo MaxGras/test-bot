@@ -29,7 +29,7 @@ export const MySchedule: React.FC = () => {
         `${import.meta.env.VITE_API_URL}/calls/my-schedule?date=${selectedDate}`
       )
       const data = await response.json()
-      setCalls(data.data || data)
+      setCalls(data.items || data)
     } catch (error) {
       console.error('Error fetching schedule:', error)
     } finally {

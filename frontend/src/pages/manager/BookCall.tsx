@@ -32,7 +32,7 @@ export const BookCall: React.FC = () => {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/developers`)
       const data = await response.json()
-      setDevelopers(data.data || data)
+      setDevelopers(data.items || data)
     } catch (error) {
       console.error('Error fetching developers:', error)
     }

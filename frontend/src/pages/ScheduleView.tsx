@@ -32,7 +32,7 @@ export const ScheduleView: React.FC = () => {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/developers`)
       const data = await response.json()
-      setDevelopers(data)
+      setDevelopers(data.items || data)
     } catch (error) {
       console.error('Error fetching developers:', error)
     }
@@ -52,7 +52,7 @@ export const ScheduleView: React.FC = () => {
         `${import.meta.env.VITE_API_URL}/developers/${selectedDeveloper.id}/calls?date=${selectedDate}`
       )
       const data = await response.json()
-      setCalls(data)
+      setCalls(Array.isArray(data) ? data : data.items || [])
       setStep('view')
     } catch (error) {
       console.error('Error fetching calls:', error)

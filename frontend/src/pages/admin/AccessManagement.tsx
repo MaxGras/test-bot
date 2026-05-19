@@ -28,7 +28,7 @@ export const AccessManagement: React.FC = () => {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/users`)
       const data = await response.json()
-      setUsers(data.data || data)
+      setUsers(data.items || data)
     } catch (error) {
       console.error('Error fetching users:', error)
     } finally {
