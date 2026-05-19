@@ -20,12 +20,7 @@ export default defineConfig({
     port: 5173,
     host: true,
     strictPort: false,
-    allowedHosts: [
-      'localhost',
-      '127.0.0.1',
-      '.ngrok-free.dev',
-      '.ngrok.io',
-    ],
+    allowedHosts: 'all',
   },
   build: {
     outDir: 'dist',
